@@ -25,9 +25,40 @@ const db = mysql.createConnection(
 );
 
 // Query the database to test the connection
-db.query(`SELECT * FROM candidates`, (err, rows) => { // This wil show each row in the database as an array of objects when console.logged to console
-    console.log(rows)
-})
+// db.query(`SELECT * FROM candidates`, (err, rows) => { // This wil show each row in the database as an array of objects when console.logged to console
+//     console.log(rows)
+// })
+
+// Get a single candidate by their ID
+// db.query(`SELECT * FROM candidates WHERE id = 1`, (err, row) => {
+//     if(err) {
+//         console.log(err)
+//     }
+//     console.log(row)
+// })
+
+// Delete a single candidate by their ID
+// db.query(`DELETE FROM candidates WHERE id = ?`, 1, (err, result) => {
+//     if(err){
+//         console.log(err)
+//     }
+//     console.log(result)
+// });
+
+// Create a candidate
+ const sql = `INSERT INTO candidates (id, first_name, last_name, industry_connected) VALUES (?, ?, ?, ?)`;
+
+ const params = [1, 'Ronald', 'Firbank', 1];
+
+ db.query(sql, params, (err, result) => {
+    if (err) {
+        console.log(err)
+    }
+    console.log(result)
+ });
+
+
+
 
 
 app.use((req, res) => {
