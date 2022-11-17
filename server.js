@@ -29,7 +29,11 @@ const db = mysql.createConnection(
 //! ---- API GET ROUTE for all candidates ----
 // Get all the data in the database
 app.get('/api/candidates', (req, res) => {
-    const sql = `SELECT * FROM candidates`; // sql statement to grab from candidates data table
+    const sql = `SELECT candidates.*, parties.name
+    AS party_name
+    FROM candidates
+    LEFT JOIN parties
+    ON candidates.party_id = parties.id`; // sql statement to grab from candidates data table with parties name left "JOIN" by corresponding ID 
 
     db.query(sql, (err, rows) => { // This will show each row in the database as an array of objects when console.logged to console
         if (err) {
@@ -46,8 +50,14 @@ app.get('/api/candidates', (req, res) => {
 
 //! ---- API GET ROUTE for single candidate ----
 // Get a single candidate by their ID
+// Candidates table was joined with parties table name, therefor API had to be updated to include joining of tables
 app.get('/api/candidates/:id', (req, res) => {
-    const sql = `SELECT * FROM candidates WHERE id = ?`;
+    const sql = `SELECT candidates.*, parties.name
+    AS party_name
+    FROM candidates
+    LEFT JOIN parties
+    ON candidates.party_id = parties.id
+    WHERE candidates.id = ?`;
     const params = [req.params.id];
 
     db.query(sql, params, (err, row) => { // in query method, you must sepcify params as well for a specific ID 
