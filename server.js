@@ -26,8 +26,9 @@ const db = mysql.createConnection(
     console.log('Connected to the election database.')
 );
 
+
 //! ---- API GET ROUTE for all candidates ----
-// Get all the data in the database
+// Get all the data in candidates table
 app.get('/api/candidates', (req, res) => {
     const sql = `SELECT candidates.*, parties.name
     AS party_name
@@ -37,7 +38,7 @@ app.get('/api/candidates', (req, res) => {
 
     db.query(sql, (err, rows) => { // This will show each row in the database as an array of objects when console.logged to console
         if (err) {
-            res.status(500).json({error: err.message}) // 500 means server error while 404 means user request error
+            res.status(500).json({ error: err.message }) // 500 means server error while 404 means user request error
             return; 
         }
         res.json({
@@ -74,7 +75,7 @@ app.get('/api/candidates/:id', (req, res) => {
 
 //! ---- API DELETE ROUTE for single candidate ----
 //You can only test delete  HTTP methods with Insomnia 
-app.delete("/api/candidate/:id", (req, res) => {
+app.delete('/api/candidate/:id', (req, res) => {
   const sql = `DELETE FROM candidates WHERE id = ?`;
   const params = [req.params.id];
 
@@ -96,9 +97,37 @@ app.delete("/api/candidate/:id", (req, res) => {
   })
 });
 
+//! ---- API PUT ROUTE for single candidate ----
+// Update a candidate's party
+app.put('/api/candidate/:id', (req, res) => {
+    const errors = inputCheck(req.body, 'party_id')
+
+    if (errors) {
+        res.status(400).json({ error: errors })
+        return
+    };
+    
+    const sql = 'UPDATE candidates SET party_id = ? WHERE id = ?';
+    const params = [req.body.party_id, req.params.id] // fields being updated should always be part of the body
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            res.status(400).json({ error: err.message })
+            // check if a record was found
+        } else if (!result.affectedRows) {
+            res.json({ 
+                message: 'Candidate not found'
+            })
+        } else {
+            res.json({
+                message: 'success',
+                data: req.body,
+                changes: result.affectedRows
+            })
+        }
+    })
+});
+
 //! ---- API POST ROUTE for single candidate ----
-
-
 // Create a candidate
 app.post('/api/candidate', ({ body }, res) => { // { body } is req.body but destructured 
     const errors = inputCheck(body, 'first_name', 'last_name', 'industry_connected') //input check anon function is in inputCheck.js module file -- this module must be required at top of server
@@ -123,9 +152,58 @@ app.post('/api/candidate', ({ body }, res) => { // { body } is req.body but dest
     })
 });
 
+//! ---- API GET ROUTE all parties----
+app.get('/api/parties', (req, res) => {
+    const sql = `SELECT * FROM parties`;
+    db.query(sql, (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message })
+            return
+        }
+        res.json({
+            message: 'success',
+            data: rows
+        })
+    })
+});
+
+//! ---- API GET ROUTE for single party ID ----
+app.get('/api/party/:id', (req, res) => {
+    const sql = `SELECT * FROM parties WHERE id = ?`
+    const params = [req.params.id]
+    db.query(sql, params, (err, rows) => {
+        if (err) {
+            res.status(400).json({ error: err.message })
+            return
+        }
+        res.json({ 
+            message: 'success',
+            data: rows
+        })
+    })
+});
 
 
-
+//! ---- API DELETE ROUTE for single party ID ----
+app.delete('/api/party/:id', (req, res) => {
+    const sql = `DELETE FROM parties WHERE id = ?`
+    const params = [req.params.id]
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            res.status(400).json({ error: res.message })
+        } else if (!result.affectedRows) { // checks if anything was deleted
+            res.json({ 
+                message: 'Party not found'
+            })
+        } else {
+            res.json({
+                message: 'deleted',
+                changes: result.affectedRows,
+                id: req.params.id
+            })
+        }
+    })
+});
 
 
 //? ---- API LISTEN ROUTE -----------------
